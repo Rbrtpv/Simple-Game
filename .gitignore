@@ -1,0 +1,11 @@
+
+# Compiled Java class files
+*.class
+*.jar
+
+# Directory for compiled output
+bin/
+
+# Visual Studio Code settings
+.vscode/
+

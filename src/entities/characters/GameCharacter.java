@@ -5,23 +5,34 @@ import java.awt.Graphics;
 
 public abstract class GameCharacter {
 
-    private int x, y, w, h, speed;
+    private int x, y;
+    private int w, h;
+    private int speed;
     private Color color;
+    private int health;
+    private int attack;
+    private int defense;
+    private String attacktype;
 
-    public GameCharacter(int x, int y, int w, int h, int speed) {
+    public GameCharacter(int x, int y, int w, int h, int speed, Color color, int health, int attack, int defense,
+            String attackType) {
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
         this.speed = speed;
-        this.color = Color.BLUE;
+        this.color = color;
+        this.health = health;
+        this.attack = attack;
+        this.defense = defense;
+        this.attacktype = attackType;
     }
 
-    public void attack() {
+    public void attack(int x, int y) {
     }
 
     public void draw(Graphics g) {
-        g.setColor(color);
+        g.setColor(this.color);
         g.fillRect(x, y, w, h);
     }
 
@@ -70,5 +81,25 @@ public abstract class GameCharacter {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    public void setW(int w) {
+        this.w = w;
+    }
+
+    public void setH(int h) {
+        this.h = h;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
     }
 }

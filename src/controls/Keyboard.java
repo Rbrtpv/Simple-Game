@@ -6,11 +6,34 @@ import user.Player;
 
 public class Keyboard implements KeyListener {
 
-    private boolean up, down, left, right;
+    public boolean up, down, left, right;
     private Player player;
+    private boolean swapCharacterPressed;
+    private boolean[] keys;
 
     public Keyboard(Player player) {
         this.player = player;
+        keys = new boolean[256];
+    }
+
+    public void update() {
+        up = keys[KeyEvent.VK_W] || keys[KeyEvent.VK_UP];
+        down = keys[KeyEvent.VK_S] || keys[KeyEvent.VK_DOWN];
+        left = keys[KeyEvent.VK_A] || keys[KeyEvent.VK_LEFT];
+        right = keys[KeyEvent.VK_D] || keys[KeyEvent.VK_RIGHT];
+
+        if (keys[KeyEvent.VK_SPACE]) {
+            if (!swapCharacterPressed) {
+                player.swapCharacter();
+                swapCharacterPressed = true;
+            }
+        } else {
+            swapCharacterPressed = false;
+        }
+
+        if (keys[KeyEvent.VK_ESCAPE]) {
+            System.exit(0);
+        }
     }
 
     @Override
@@ -19,63 +42,19 @@ public class Keyboard implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent ke) {
-        switch (ke.getKeyCode()) {
-            case KeyEvent.VK_W:
-            case KeyEvent.VK_UP:
-                up = true;
-                System.out.println("up");
-                break;
-            case KeyEvent.VK_S:
-            case KeyEvent.VK_DOWN:
-                down = true;
-                System.out.println("down");
-                break;
-            case KeyEvent.VK_A:
-            case KeyEvent.VK_LEFT:
-                left = true;
-                System.out.println("left");
-                break;
-            case KeyEvent.VK_D:
-            case KeyEvent.VK_RIGHT:
-                right = true;
-                System.out.println("right");
-                break;
-            case KeyEvent.VK_SPACE:
-                player.swapCharacter();
-                System.out.println("swap");
-                break;
-            case KeyEvent.VK_ESCAPE:
-                System.out.println("scape");
-                break;
+        if (ke.getKeyCode() >= 0 && ke.getKeyCode() < keys.length) {
+            keys[ke.getKeyCode()] = true;
         }
     }
 
     @Override
     public void keyReleased(KeyEvent ke) {
-        switch (ke.getKeyCode()) {
-            case KeyEvent.VK_W:
-            case KeyEvent.VK_UP:
-                up = false;
-                break;
-            case KeyEvent.VK_S:
-            case KeyEvent.VK_DOWN:
-                down = false;
-                break;
-            case KeyEvent.VK_A:
-            case KeyEvent.VK_LEFT:
-                left = false;
-                break;
-            case KeyEvent.VK_D:
-            case KeyEvent.VK_RIGHT:
-                right = false;
-                break;
-            case KeyEvent.VK_ESCAPE:
-                System.exit(0);
-                break;
+        if (ke.getKeyCode() >= 0 && ke.getKeyCode() < keys.length) {
+            keys[ke.getKeyCode()] = false;
         }
     }
 
-    // Getters y setters
+    // Getters & setters
     public boolean isUp() {
         return up;
     }

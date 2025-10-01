@@ -5,36 +5,24 @@ import java.awt.Color;
 import java.awt.Graphics;
 import user.Player;
 
-public abstract class Enemy {
+public abstract class Enemy extends GameCharacter {
 
-  protected int x, y;
-  protected int w, h;
-  protected int speed;
   protected Color color;
-  protected int healthPoints;
   protected int attackDmg;
   protected int defense;
   protected float attackRange;
   protected float attackCooldown;
   protected String name;
   protected float currentCooldownTimer;
-
   protected Player target;
 
-  public Enemy(int x, int y, int w, int h, int speed, Color color, int hp, int attackDmg, int defense,
-      float attackRange, float attackCooldown, String name) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.speed = speed;
-    this.color = color;
-    this.healthPoints = hp;
+  public Enemy(int x, int y, int w, int h, int speed, int healthPoints, int maxHealthPoints, int attackDmg, int defense,
+      float attackRange, float attackCooldown) {
+    super(x, y, w, h, speed, healthPoints, maxHealthPoints, attackDmg, defense);
     this.attackDmg = attackDmg;
     this.defense = defense;
     this.attackRange = attackRange;
     this.attackCooldown = attackCooldown;
-    this.name = name;
     this.currentCooldownTimer = 0;
   }
 
@@ -43,6 +31,27 @@ public abstract class Enemy {
   public abstract void draw(Graphics g);
 
   public abstract void attack(Player target);
+
+  protected void chase() {
+    float deltaTime = 1.0f / 60.0f;
+    updateCooldown(deltaTime);
+
+    if (target == null || target.currentCharacter == null || target.currentCharacter.getHealthPoints() <= 0
+        || this.healthPoints <= 0) {
+      return;
+    }
+
+    boolean isInRange = checkIfTargetInRange(target);
+
+    if (isInRange && target.currentCharacter.getHealthPoints() > 0) {
+      if (isAttackReady()) {
+        attack(target);
+        resetAttackCooldown();
+      }
+    } else {
+      move(target.currentCharacter);
+    }
+  }
 
   protected void move(GameCharacter target) {
     if ((target.getX() - 25) > x) {
@@ -57,25 +66,8 @@ public abstract class Enemy {
     }
   }
 
-  protected void chase() {
-    float deltaTime = 1.0f / 60.0f;
-    updateCooldown(deltaTime);
-
-    if (target == null || healthPoints <= 0) {
-      return;
-    }
-    boolean isInRange = checkIfTargetInRange(target);
-    if (isInRange && target.currentCharacter.getHealth()>0) {
-      if (isAttackReady()) {
-        attack(target);
-        resetAttackCooldown();
-      }
-    } else {
-      move(target.currentCharacter);
-    }
-  }
-
   protected boolean checkIfTargetInRange(Player target) {
+
     double machineCenterX = x + w / 2.0;
     double machineCenterY = y + h / 2.0;
 
@@ -105,8 +97,56 @@ public abstract class Enemy {
     this.currentCooldownTimer = this.attackCooldown;
   }
 
+  protected void loadEnemyDraw(Graphics g) {
+    drawEnemy(g);
+    healthBar(g);
+  }
+
+  protected void drawEnemy(Graphics g) {
+    g.setColor(Color.red);
+    g.drawRect(x, y, w, h);
+  }
+
+  protected void healthBar(Graphics g) {
+    int barWidth = w;
+    int barHeight = 5;
+    int barX = x;
+    int barY = y - barHeight - 2;
+
+    g.setColor(Color.RED); // lost health
+    g.fillRect(barX, barY, barWidth, barHeight);
+
+    float healthPercentage = (float) healthPoints / maxHealthPoints;
+    int currentHealthBarWidth = (int) (barWidth * healthPercentage);
+
+    g.setColor(Color.GREEN); // remaining health
+    g.fillRect(barX, barY, currentHealthBarWidth, barHeight);
+  }
+
+  @Override
+  public void takeDamage(int damage) {
+    this.healthPoints -= damage;
+    if (this.healthPoints < 0) {
+      this.healthPoints = 0;
+    }
+  }
+
+  public boolean isAlive() {
+    return healthPoints > 0;
+  }
+
   // Getters and Setters
   public void setTarget(Player target) {
     this.target = target;
+  }
+
+  @Override
+  public int getHealthPoints() {
+    return healthPoints;
+  }
+
+  @Override
+  public int getMaxHealthPoints() {
+    return maxHealthPoints;
   }
 }

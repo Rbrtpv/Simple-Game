@@ -4,6 +4,7 @@ import controls.Keyboard;
 import entities.characters.GameCharacter;
 import entities.characters.Pierce;
 import entities.characters.Slash;
+import game.Window;
 import java.awt.Canvas;
 import java.awt.Graphics;
 import java.util.List;
@@ -13,9 +14,10 @@ public class Player {
     private int x, y;
     private int w, h;
     private int speed;
-    private GameCharacter currentCharacter;
+    public GameCharacter currentCharacter;
     private Pierce pierce;
     private Slash slash;
+    private Window window;
     private Canvas canvas;
     private Keyboard keyboard;
 
@@ -43,6 +45,7 @@ public class Player {
         this.h = character.getH();
         this.speed = character.getSpeed();
         this.keyboard = null;
+        window = new Window();
     }
 
     public void update() {
@@ -82,23 +85,20 @@ public class Player {
             currentCharacter.setX(0);
         if (charY < 0)
             currentCharacter.setY(0);
-        if (charX > 990 - charW)
-            currentCharacter.setX(990 - charW);
-        if (charY > 800 - charH)
-            currentCharacter.setY(800 - charH);
+        if (charX > window.getWidth() - charW)
+            currentCharacter.setX(window.getWidth() - charW);
+        if (charY > window.getHeight() - charH)
+            currentCharacter.setY(window.getHeight() - charH);
     }
 
     public void swapCharacter() {
         // Ensure pierce and slash are initialized before attempting to swap
         if (this.pierce == null || this.slash == null) {
-            System.err.println("Error: Cannot swap character. Not initialized.");
             return;
         }
-
         // Save the current position of the active character before swapping
         int currentX = currentCharacter.getX();
         int currentY = currentCharacter.getY();
-
         if (this.currentCharacter == this.pierce) {
             this.pierce.setX(currentX);
             this.pierce.setY(currentY);
@@ -114,21 +114,16 @@ public class Player {
             this.pierce.setX(currentX);
             this.pierce.setY(currentY);
         } else {
-            System.out.println("Warning: currentCharacter was an unexpected type. Defaulting to Pierce.");
             this.currentCharacter = this.pierce;
             this.pierce.setX(currentX);
             this.pierce.setY(currentY);
         }
-
         // Update Player's own fields to reflect the new currentCharacter's properties
         this.x = currentCharacter.getX();
         this.y = currentCharacter.getY();
         this.w = currentCharacter.getW();
         this.h = currentCharacter.getH();
         this.speed = currentCharacter.getSpeed();
-
-        System.out.println("Character swapped to: " + currentCharacter.getClass().getSimpleName() + " at (" + this.x
-                + ", " + this.y + ")");
     }
 
     public void attack(int x, int y) {
@@ -152,5 +147,9 @@ public class Player {
             return ((Slash) currentCharacter).getAttacks();
         }
         return new java.util.ArrayList<>();
+    }
+
+    public GameCharacter getCurrentCharacter() {
+        return currentCharacter;
     }
 }

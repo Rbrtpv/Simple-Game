@@ -2,40 +2,46 @@ package entities.characters;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 
 public abstract class GameCharacter {
 
-    private int x, y;
-    private int w, h;
-    private int speed;
-    private Color color;
-    private int health;
-    private int attack;
-    private int defense;
-    private String attacktype;
+    protected int x, y;
+    protected int w, h;
+    protected int speed;
+    protected Color color;
+    protected int healthPoints;
+    protected int maxHealthPoints;
+    protected int attackDmg;
+    protected int defense;
 
-    public GameCharacter(int x, int y, int w, int h, int speed, Color color, int health, int attack, int defense,
-            String attackType) {
+    public GameCharacter(int x, int y, int w, int h, int speed, int healthPoints, int maxHealthPoints, int attackDmg,
+            int defense) {
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
         this.speed = speed;
-        this.color = color;
-        this.health = health;
-        this.attack = attack;
+        this.healthPoints = healthPoints;
+        this.maxHealthPoints = maxHealthPoints;
+        this.attackDmg = attackDmg;
         this.defense = defense;
-        this.attacktype = attackType;
     }
+
+    public abstract void update();
+
+    public abstract void draw(Graphics g);
 
     public void attack(int x, int y) {
     }
 
-    public void draw(Graphics g) {
-        g.setColor(this.color);
-        g.fillRect(x, y, w, h);
+    public void takeDamage(int dmg) {
+        setHealthPoints(this.healthPoints -= dmg);
+        if (this.healthPoints <= 0) {
+        }
     }
 
+    // Movement
     public void moveUp() {
         y -= speed;
     }
@@ -52,9 +58,24 @@ public abstract class GameCharacter {
         x += speed;
     }
 
-    public abstract void update();
-
     // Getters & Setters
+    public void setHealthPoints(int healthPoints) {
+        this.healthPoints = healthPoints;
+        if (this.healthPoints < 0) {
+            this.healthPoints = 0;
+        }
+        if (this.healthPoints > this.maxHealthPoints) {
+            this.healthPoints = this.maxHealthPoints;
+        }
+    }
+
+    public void setMaxHealthPoints(int maxHealthPoints) {
+        this.maxHealthPoints = maxHealthPoints;
+        if (this.healthPoints > this.maxHealthPoints) {
+            this.healthPoints = this.maxHealthPoints;
+        }
+    }
+
     public int getX() {
         return x;
     }
@@ -73,6 +94,14 @@ public abstract class GameCharacter {
 
     public int getSpeed() {
         return speed;
+    }
+
+    public int getHealthPoints() {
+        return healthPoints;
+    }
+
+    public Rectangle getBounds() { // for collisions
+        return new Rectangle(x, y, w, h);
     }
 
     public void setX(int x) {
@@ -101,5 +130,9 @@ public abstract class GameCharacter {
 
     public void setColor(Color color) {
         this.color = color;
+    }
+
+    public int getMaxHealthPoints() {
+        return maxHealthPoints;
     }
 }

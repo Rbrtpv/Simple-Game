@@ -5,18 +5,13 @@ import java.awt.Graphics;
 
 public class LevelsMenu {
   public LevelsMenu() {
-    // Constructor
   }
 
-  @Override
   public void draw(Graphics g) {
     g.setColor(Color.BLUE);
-    g.drawString("Selección de Nivel", 350, 250);
-    // Agrega botones para seleccionar niveles
+    g.drawString("Level", 350, 250);
   }
 
-  @Override
   public void update() {
-    // Lógica de actualización
   }
 }

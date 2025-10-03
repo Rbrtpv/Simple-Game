@@ -4,16 +4,21 @@ import controls.Keyboard;
 import controls.Mouse;
 import entities.characters.GameCharacter;
 import entities.characters.Pierce;
+import entities.characters.Slash;
 import entities.dmg.AreaOfEffect;
 import entities.dmg.Projectile;
 import entities.enemies.Enemy;
 import entities.enemies.Machines;
 import entities.enemies.Organic;
 import java.awt.Rectangle;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import ui.LevelsMenu;
+import ui.MainMenu;
+import ui.PauseMenu;
+import ui.RestartMenu;
+import ui.StatsMenu;
 import user.HUD;
 import user.Player;
 
@@ -22,7 +27,7 @@ public class Game implements Runnable {
     // game window
     private Window window;
     private Keyboard keyboard;
-    private MouseListener mouse;
+    private Mouse mouse;
     private Player player;
     private HUD hud;
     private List<Enemy> enemies;
@@ -35,6 +40,12 @@ public class Game implements Runnable {
     private double delta;
     private long now;
     private long lastTime;
+    private MainMenu mainMenu;
+    private PauseMenu pauseMenu;
+    private RestartMenu restartMenu;
+    private LevelsMenu levelsMenu;
+    private StatsMenu statsMenu;
+    private GameState currentGameState;
 
     public Game() {
     }
@@ -46,7 +57,7 @@ public class Game implements Runnable {
         keyboard = new Keyboard(player);
         player.setKeyboard(keyboard);
         mouse = new Mouse(player);
-        window.loadWindow(keyboard, mouse);
+        window.loadWindow(keyboard);
         hud = new HUD(player);
         enemies = new ArrayList<>();
         enemies.add(new Machines());
@@ -54,7 +65,14 @@ public class Game implements Runnable {
         for (Enemy enemy : enemies) {
             enemy.setTarget(player);
         }
+        mainMenu = new MainMenu(window, this);
+        pauseMenu = new PauseMenu();
+        restartMenu = new RestartMenu(window, this);
+        levelsMenu = new LevelsMenu();
+        statsMenu = new StatsMenu();
+        currentGameState = GameState.MAIN_MENU;
 
+        window.addMouseListener(mainMenu);
         start();
     }
 
@@ -101,99 +119,226 @@ public class Game implements Runnable {
     }
 
     private void update() {
-        player.update();
-        if (keyboard != null) {
-            keyboard.update();
-        }
-        List<Projectile> playerProjectiles = player.getProjectiles();
-        Iterator<Projectile> projectileIterator = playerProjectiles.iterator();
-        while (projectileIterator.hasNext()) {
-            Projectile projectile = projectileIterator.next();
-            projectile.update();
-
-            if (!projectile.isActive()) {
-                projectileIterator.remove();
-                continue;
-            }
-
-            Iterator<Enemy> enemyIterator = enemies.iterator();
-            while (enemyIterator.hasNext()) {
-                Enemy enemy = enemyIterator.next();
-                if (checkCollision(projectile.getBounds(), enemy.getBounds())) {
-                    enemy.takeDamage(projectile.getDamage());
-                    projectile.setActive(false); // proyectila disapear
-                    break; // projectile only for one enemy
+        switch (currentGameState) {
+            case MAIN_MENU:
+                mainMenu.update();
+                break;
+            case PLAYING:
+                player.update();
+                if (player.getCurrentCharacter().getHealthPoints() <= 0) {
+                    setGameState(GameState.RESTART);
+                    break;
                 }
-            }
-        }
-
-        List<AreaOfEffect> playerAttacks = player.getAttacks();
-        Iterator<AreaOfEffect> aoeIterator = playerAttacks.iterator();
-        while (aoeIterator.hasNext()) {
-            AreaOfEffect attack = aoeIterator.next();
-            attack.update();
-
-            if (!attack.isActive()) { //AOE no active
-                aoeIterator.remove();
-                continue;
-            }
-
-            for (Enemy enemy : enemies) {
-                if (checkCollision(attack.getBounds(), enemy.getBounds())) {
-
-                    enemy.takeDamage(attack.getDamage());
+                if (keyboard != null) {
+                    keyboard.update();
                 }
-            }
-        }
+                List<Projectile> playerProjectiles = player.getProjectiles();
+                Iterator<Projectile> projectileIterator = playerProjectiles.iterator();
+                while (projectileIterator.hasNext()) {
+                    Projectile projectile = projectileIterator.next();
+                    projectile.update();
 
-        Iterator<Enemy> enemyUpdateIterator = enemies.iterator();
-        while (enemyUpdateIterator.hasNext()) {
-            Enemy enemy = enemyUpdateIterator.next();
-            enemy.update();
+                    if (!projectile.isActive()) {
+                        projectileIterator.remove();
+                        continue;
+                    }
 
-            if (!enemy.isAlive()) {
-                enemyUpdateIterator.remove(); // if enemy health is 0 = remove
-            } else {
-                // 
-                if (enemy instanceof Machines) {
-                    Machines machineEnemy = (Machines) enemy;
-                    Iterator<Projectile> enemyProjectileIterator = machineEnemy.getProjectiles().iterator();
-                    while (enemyProjectileIterator.hasNext()) {
-                        Projectile enemyProjectile = enemyProjectileIterator.next();
-
-                        if (checkCollision(enemyProjectile.getBounds(), player.getCurrentCharacter().getBounds())) {
-                            player.getCurrentCharacter().takeDamage(enemyProjectile.getDamage());
-                            enemyProjectile.setActive(false);
-                            enemyProjectileIterator.remove();
+                    Iterator<Enemy> enemyIterator = enemies.iterator();
+                    while (enemyIterator.hasNext()) {
+                        Enemy enemy = enemyIterator.next();
+                        if (checkCollision(projectile.getBounds(), enemy.getBounds())) {
+                            enemy.takeDamage(projectile.getDamage());
+                            projectile.setActive(false);
+                            break;
                         }
                     }
                 }
-            }
+
+                List<AreaOfEffect> playerAttacks = player.getAttacks();
+                Iterator<AreaOfEffect> aoeIterator = playerAttacks.iterator();
+                while (aoeIterator.hasNext()) {
+                    AreaOfEffect attack = aoeIterator.next();
+                    attack.update();
+
+                    if (!attack.isActive()) {
+                        aoeIterator.remove();
+                        continue;
+                    }
+
+                    for (Enemy enemy : enemies) {
+                        if (checkCollision(attack.getBounds(), enemy.getBounds())) {
+
+                            enemy.takeDamage(attack.getDamage());
+                        }
+                    }
+                }
+
+                Iterator<Enemy> enemyUpdateIterator = enemies.iterator();
+                while (enemyUpdateIterator.hasNext()) {
+                    Enemy enemy = enemyUpdateIterator.next();
+                    enemy.update();
+
+                    if (!enemy.isAlive()) {
+                        enemyUpdateIterator.remove();
+                    } else {
+                        //
+                        if (enemy instanceof Machines) {
+                            Machines machineEnemy = (Machines) enemy;
+                            Iterator<Projectile> enemyProjectileIterator = machineEnemy.getProjectiles().iterator();
+                            while (enemyProjectileIterator.hasNext()) {
+                                Projectile enemyProjectile = enemyProjectileIterator.next();
+
+                                if (checkCollision(enemyProjectile.getBounds(),
+                                        player.getCurrentCharacter().getBounds())) {
+                                    player.getCurrentCharacter().takeDamage(enemyProjectile.getDamage());
+                                    enemyProjectile.setActive(false);
+                                    enemyProjectileIterator.remove();
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+            case PAUSE:
+                pauseMenu.update();
+                break;
+            case RESTART:
+                restartMenu.update();
+                break;
+            case LEVELS:
+                levelsMenu.update();
+                break;
+            case STATS:
+                statsMenu.update();
+                break;
         }
     }
 
     private void repaint() {
         window.draw();
 
-        for (Projectile projectile : player.getProjectiles()) {
-            projectile.draw(window.getGraphics());
-        }
-        for (AreaOfEffect aoe : player.getAttacks()) {
-            aoe.draw(window.getGraphics());
-        }
-        player.draw(window.getGraphics());
-        for (Enemy enemy : enemies) {
-            enemy.draw(window.getGraphics());
-            // draw enemies projectiles
-            if(enemy instanceof Machines) {
-                for(Projectile p : ((Machines) enemy).getProjectiles()){
-                    p.draw(window.getGraphics());
+        switch (currentGameState) {
+            case MAIN_MENU:
+                mainMenu.draw(window.getGraphics());
+                break;
+            case PLAYING:
+                for (Projectile projectile : new ArrayList<>(player.getProjectiles())) {
+                    projectile.draw(window.getGraphics());
                 }
-            }
+                for (AreaOfEffect aoe : new ArrayList<>(player.getAttacks())) {
+                    aoe.draw(window.getGraphics());
+                }
+                player.draw(window.getGraphics());
+                for (Enemy enemy : enemies) {
+                    enemy.draw(window.getGraphics());
+                    // draw enemies projectiles
+                    if (enemy instanceof Machines) {
+                        for (Projectile p : new ArrayList<>(((Machines) enemy).getProjectiles())) {
+                            p.draw(window.getGraphics());
+                        }
+                    }
+                }
+                hud.draw(window.getGraphics());
+                break;
+            case PAUSE:
+                for (Projectile projectile : new ArrayList<>(player.getProjectiles())) {
+                    projectile.draw(window.getGraphics());
+                }
+                for (AreaOfEffect aoe : new ArrayList<>(player.getAttacks())) {
+                    aoe.draw(window.getGraphics());
+                }
+                player.draw(window.getGraphics());
+                for (Enemy enemy : enemies) {
+                    enemy.draw(window.getGraphics());
+                    if (enemy instanceof Machines) {
+                        for (Projectile p : new ArrayList<>(((Machines) enemy).getProjectiles())) {
+                            p.draw(window.getGraphics());
+                        }
+                    }
+                }
+                hud.draw(window.getGraphics());
+                pauseMenu.draw(window.getGraphics());
+                break;
+            case RESTART:
+                for (Projectile projectile : new ArrayList<>(player.getProjectiles())) {
+                    projectile.draw(window.getGraphics());
+                }
+                for (AreaOfEffect aoe : new ArrayList<>(player.getAttacks())) {
+                    aoe.draw(window.getGraphics());
+                }
+                player.draw(window.getGraphics());
+                for (Enemy enemy : enemies) {
+                    enemy.draw(window.getGraphics());
+                    if (enemy instanceof Machines) {
+                        for (Projectile p : new ArrayList<>(((Machines) enemy).getProjectiles())) {
+                            p.draw(window.getGraphics());
+                        }
+                    }
+                }
+                hud.draw(window.getGraphics());
+                restartMenu.draw(window.getGraphics());
+                break;
+            case LEVELS:
+                levelsMenu.draw(window.getGraphics());
+                break;
+            case STATS:
+                statsMenu.draw(window.getGraphics());
+                break;
         }
-        hud.draw(window.getGraphics());
 
         window.render();
+    }
+
+    public void setGameState(GameState newGameState) {
+        if (currentGameState == GameState.MAIN_MENU && newGameState == GameState.PLAYING) {
+            window.removeMouseListener(mainMenu);
+            window.addMouseListener(mouse);
+            resetGame();
+        } else if (currentGameState == GameState.PLAYING && newGameState == GameState.MAIN_MENU) {
+            window.removeMouseListener(mouse);
+            window.addMouseListener(mainMenu);
+        }
+        else if (currentGameState == GameState.PLAYING && newGameState == GameState.RESTART) {
+            window.removeMouseListener(mouse);
+            window.addMouseListener(restartMenu);
+            restartMenu.startCountdown();
+        }
+        else if (currentGameState == GameState.RESTART && newGameState == GameState.PLAYING) {
+            window.removeMouseListener(restartMenu); 
+            window.addMouseListener(mouse);
+            resetGame();
+        }
+        else if (currentGameState == GameState.RESTART && newGameState == GameState.MAIN_MENU) {
+            window.removeMouseListener(restartMenu);
+            window.addMouseListener(mainMenu);
+            resetGame();
+        }
+        else if (currentGameState == GameState.PLAYING && newGameState == GameState.PAUSE) {
+            window.removeMouseListener(mouse);
+        } else if (currentGameState == GameState.PAUSE && newGameState == GameState.PLAYING) {
+            window.addMouseListener(mouse);
+        }
+
+        this.currentGameState = newGameState;
+    }
+
+    public void resetGame() {
+        player.getCurrentCharacter().setHealthPoints(player.getCurrentCharacter().getMaxHealthPoints());
+        player.getCurrentCharacter().setX((window.getWidth() / 2) - player.getCurrentCharacter().getW() / 2);
+        player.getCurrentCharacter().setY((window.getHeight() - 300) - player.getCurrentCharacter().getH() / 2);
+
+        if (player.getCurrentCharacter() instanceof Pierce) {
+            ((Pierce) player.getCurrentCharacter()).getProjectiles().clear();
+        } else if (player.getCurrentCharacter() instanceof Slash) {
+            ((Slash) player.getCurrentCharacter()).getAttacks().clear();
+        }
+
+        enemies.clear();
+        enemies.add(new Machines());
+        enemies.add(new Organic());
+        for (Enemy enemy : enemies) {
+            enemy.setTarget(player);
+        }
     }
 
     // Getters and Setters
@@ -203,5 +348,9 @@ public class Game implements Runnable {
 
     public void setRunning(boolean running) {
         this.running = running;
+    }
+
+    public GameState getGameState() {
+        return currentGameState;
     }
 }

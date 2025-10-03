@@ -9,9 +9,11 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferStrategy;
 import javax.swing.JFrame;
 
+// import ui.MainMenu;
+
 public class Window {
 
-    private String title = "Java Game";
+    private String title = "Ataca!";
     private int width = 990, height = 800;
     private JFrame frame;
     private Canvas canvas;
@@ -21,7 +23,7 @@ public class Window {
     public Window() {
     }
 
-    public void loadWindow(KeyListener keyListener, MouseListener mouseListener) {
+    public void loadWindow(KeyListener keyListener) {
 
         frame = new JFrame();
         frame.setSize(width, height);
@@ -41,9 +43,6 @@ public class Window {
 
         if (keyListener != null) {
             canvas.addKeyListener(keyListener);
-        }
-        if (mouseListener != null) {
-            canvas.addMouseListener(mouseListener);
         }
 
         canvas.setFocusable(true);
@@ -81,5 +80,17 @@ public class Window {
 
     public Graphics getGraphics() {
         return g;
+    }
+
+    public void addMouseListener(MouseListener listener) {
+        if (canvas != null) {
+            canvas.addMouseListener(listener);
+        }
+    }
+
+    public void removeMouseListener(MouseListener listener) {
+        if (canvas != null) {
+            canvas.removeMouseListener(listener);
+        }
     }
 }

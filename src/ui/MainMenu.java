@@ -47,7 +47,7 @@ public class MainMenu extends Ui implements MouseListener {
 
     g2d.setColor(Color.WHITE);
     g2d.setFont(new Font("Arial", Font.BOLD, 48));
-    String title = "Juego Atacar!";
+    String title = "Java Game!";
     int titleWidth = g2d.getFontMetrics().stringWidth(title);
     g2d.drawString(title, (window.getWidth() - titleWidth) / 2, 150);
 
@@ -56,7 +56,7 @@ public class MainMenu extends Ui implements MouseListener {
     g2d.setColor(new Color(50, 150, 50));
     g2d.fillRect(playButton.x, playButton.y, playButton.width, playButton.height);
     g2d.setColor(Color.WHITE);
-    String playText = "Jugar";
+    String playText = "Play";
     int playTextWidth = g2d.getFontMetrics().stringWidth(playText);
     
     g2d.drawString(playText, playButton.x + (playButton.width - playTextWidth) / 2, playButton.y + 35);
@@ -64,7 +64,7 @@ public class MainMenu extends Ui implements MouseListener {
     g2d.setColor(new Color(150, 50, 50));
     g2d.fillRect(exitButton.x, exitButton.y, exitButton.width, exitButton.height);
     g2d.setColor(Color.WHITE);
-    String exitText = "Salir";
+    String exitText = "Exit";
     int exitTextWidth = g2d.getFontMetrics().stringWidth(exitText);
     
     g2d.drawString(exitText, exitButton.x + (exitButton.width - exitTextWidth) / 2, exitButton.y + 35);

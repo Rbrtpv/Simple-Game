@@ -10,10 +10,12 @@ public class Keyboard implements KeyListener {
     private Player player;
     private boolean swapCharacterPressed;
     private boolean[] keys;
+    private volatile boolean escapeJustPressed;
 
     public Keyboard(Player player) {
         this.player = player;
         keys = new boolean[256];
+        this.escapeJustPressed = false;
     }
 
     public void update() {
@@ -31,9 +33,6 @@ public class Keyboard implements KeyListener {
             swapCharacterPressed = false;
         }
 
-        if (keys[KeyEvent.VK_ESCAPE]) {
-            System.exit(0);
-        }
     }
 
     @Override
@@ -44,7 +43,18 @@ public class Keyboard implements KeyListener {
     public void keyPressed(KeyEvent ke) {
         if (ke.getKeyCode() >= 0 && ke.getKeyCode() < keys.length) {
             keys[ke.getKeyCode()] = true;
+            if (ke.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                escapeJustPressed = true;
+            }
         }
+    }
+
+    public boolean consumeEscapePress() {
+        if (escapeJustPressed) {
+            escapeJustPressed = false;
+            return true;
+        }
+        return false;
     }
 
     @Override

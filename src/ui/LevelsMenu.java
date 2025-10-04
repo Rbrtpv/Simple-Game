@@ -8,14 +8,14 @@ public class LevelsMenu {
     // Constructor
   }
 
-  // @Override
+  @Override
   public void draw(Graphics g) {
     g.setColor(Color.BLUE);
-    g.drawString("Level Selector", 350, 250);
+    g.drawString("Selección de Nivel", 350, 250);
     // Agrega botones para seleccionar niveles
   }
 
-  // @Override
+  @Override
   public void update() {
     // Lógica de actualización
   }

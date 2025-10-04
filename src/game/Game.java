@@ -66,7 +66,7 @@ public class Game implements Runnable {
             enemy.setTarget(player);
         }
         mainMenu = new MainMenu(window, this);
-        pauseMenu = new PauseMenu();
+        pauseMenu = new PauseMenu(window, this);
         restartMenu = new RestartMenu(window, this);
         levelsMenu = new LevelsMenu();
         statsMenu = new StatsMenu();
@@ -119,6 +119,14 @@ public class Game implements Runnable {
     }
 
     private void update() {
+        if (keyboard.consumeEscapePress()) {
+            if (currentGameState == GameState.PLAYING) {
+                setGameState(GameState.PAUSE);
+            } else if (currentGameState == GameState.PAUSE) {
+                setGameState(GameState.PLAYING);
+            }
+            return;
+        }
         switch (currentGameState) {
             case MAIN_MENU:
                 mainMenu.update();
@@ -129,9 +137,8 @@ public class Game implements Runnable {
                     setGameState(GameState.RESTART);
                     break;
                 }
-                if (keyboard != null) {
-                    keyboard.update();
-                }
+                keyboard.update();
+
                 List<Projectile> playerProjectiles = player.getProjectiles();
                 Iterator<Projectile> projectileIterator = playerProjectiles.iterator();
                 while (projectileIterator.hasNext()) {
@@ -231,7 +238,6 @@ public class Game implements Runnable {
                 player.draw(window.getGraphics());
                 for (Enemy enemy : enemies) {
                     enemy.draw(window.getGraphics());
-                    // draw enemies projectiles
                     if (enemy instanceof Machines) {
                         for (Projectile p : new ArrayList<>(((Machines) enemy).getProjectiles())) {
                             p.draw(window.getGraphics());
@@ -290,36 +296,33 @@ public class Game implements Runnable {
     }
 
     public void setGameState(GameState newGameState) {
-        if (currentGameState == GameState.MAIN_MENU && newGameState == GameState.PLAYING) {
-            window.removeMouseListener(mainMenu);
-            window.addMouseListener(mouse);
-            resetGame();
-        } else if (currentGameState == GameState.PLAYING && newGameState == GameState.MAIN_MENU) {
-            window.removeMouseListener(mouse);
-            window.addMouseListener(mainMenu);
-        }
-        else if (currentGameState == GameState.PLAYING && newGameState == GameState.RESTART) {
-            window.removeMouseListener(mouse);
-            window.addMouseListener(restartMenu);
-            restartMenu.startCountdown();
-        }
-        else if (currentGameState == GameState.RESTART && newGameState == GameState.PLAYING) {
-            window.removeMouseListener(restartMenu); 
-            window.addMouseListener(mouse);
-            resetGame();
-        }
-        else if (currentGameState == GameState.RESTART && newGameState == GameState.MAIN_MENU) {
-            window.removeMouseListener(restartMenu);
-            window.addMouseListener(mainMenu);
-            resetGame();
-        }
-        else if (currentGameState == GameState.PLAYING && newGameState == GameState.PAUSE) {
-            window.removeMouseListener(mouse);
-        } else if (currentGameState == GameState.PAUSE && newGameState == GameState.PLAYING) {
-            window.addMouseListener(mouse);
-        }
+        if (null != currentGameState)
+            switch (currentGameState) {
+                case MAIN_MENU -> window.removeMouseListener(mainMenu);
+                case PLAYING -> window.removeMouseListener(mouse);
+                case RESTART -> window.removeMouseListener(restartMenu);
+                case PAUSE -> window.removeMouseListener(pauseMenu);
+                default -> {
+                }
+            }
 
         this.currentGameState = newGameState;
+
+        if (null != newGameState)
+            switch (newGameState) {
+                case MAIN_MENU -> {
+                    window.addMouseListener(mainMenu);
+                    resetGame();
+                }
+                case PLAYING -> window.addMouseListener(mouse);
+                case RESTART -> {
+                    window.addMouseListener(restartMenu);
+                    restartMenu.startCountdown();
+                }
+                case PAUSE -> window.addMouseListener(pauseMenu);
+                default -> {
+                }
+            }
     }
 
     public void resetGame() {

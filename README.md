@@ -34,6 +34,37 @@ To run this project, you will need a Java Development Kit (JDK) installed on you
     ```
     This command executes the `Main` class, which is the entry point of the game.
 
+## How to Create and Run an Executable (JAR)
+
+1.  **Ensure the project is compiled** as described in step 3 of "How to Run".
+2.  **Create a manifest file** (e.g., `manifest.txt`) in the project's root directory with the following content:
+    ```
+    Main-Class: Main
+    ```
+    Make sure there is a newline character at the end of the `Main-Class` line.
+
+    *   **On Linux/macOS**:
+        ```bash
+        echo "Main-Class: Main" > manifest.txt
+        ```
+    *   **On Windows (Command Prompt)**:
+        ```cmd
+        echo Main-Class: Main> manifest.txt
+        ```
+        (Note: Ensure there's a newline at the end of the file after creation, or create it manually with a text editor.)
+
+3.  **Create the executable JAR file**:
+    ```bash
+    jar cvfm JavaGame.jar manifest.txt -C bin .
+    ```
+    This command creates a JAR file named `JavaGame.jar`, using `manifest.txt` to specify the main class, and includes all compiled classes from the  directory. This command works on both Linux and Windows.
+
+4.  **Run the executable JAR file**:
+    ```bash
+    java -jar JavaGame.jar
+    ```
+    This command executes the JAR file and starts the game. This command works on both Linux and Windows.
+
 ## Project Structure
 
 The project is organized into several packages:
